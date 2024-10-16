@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Basic&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="page">
+        <div class="img-container">
+            <h1>i can and i will...</h1>
+        </div>
+
+        <div class="grid-container">
+
+            <!-- calender -->
+            <div class="calender">
+                <div id="monthName">may</div>
+                <div id="dayName">friday</div>
+                <div id="numberOfDay">12</div>
+                <div id="year">2022</div>
+            </div>
+            <!-- end calender -->
+
+            <!-- title -->
+            <div class="title">
+                <h2 data-text="Welcome...">Welcome...</h2>
+            </div>
+            <!-- end title -->
+
+            <!-- nots -->
+            <div class="nots">
+                <a href="sticky notes/stickyNotes.html" target="_blank">
+                    sticky notes
+                    <h5>click to open</h5>
+                </a>
+
+            </div>
+            <!-- end nots -->
+
+            <!-- to-do list -->
+            <div class="to-do-list">
+                <div class="tasks">
+
+                    <!-- task header -->
+                    <div class="task-header">
+                        <h1 class="task-title">To-Do List</h1>
+                        <button class="add-task" id="add-task"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <!-- end task header -->
+
+                    <!-- task -->
+                    <div class="task">
+
+                        <!-- task body -->
+                        <div class="task-body">
+                            <h2 class="title-task" id="title-task">read the book<span class="date-task" id="date-task">
+                                    2020/10/11</span></h2>
+                            <button class="delete-task circle" id="deleteBtn-task"><i
+                                    class="fa-solid fa-trash"></i></button>
+                            <button class="done-task circle" id="doneBtn-task"><i class="fa-solid fa-check"></i></button>
+                            <button class="edit-task circle" id="editBtn-task"><i
+                                    class="fa-solid fa-pen-to-square"></i></button>
+                        </div>
+                        <!-- end task body -->
+
+                    </div>
+                    <!-- end task -->
+
+                </div>
+                <!-- end tasks -->
+            </div>
+            <!-- end to-do list -->
+
+            <!-- count timer -->
+            <div class="count-timer">
+                <h1>Hours Completed Today</h1>
+                <h2 id="hrs">0</h2>
+            </div>
+            <!-- end count timer -->
+
+            <!-- timer -->
+            <div class="timer">
+                <h2 class="timer-title">you should <span>save</span> your time after you finish</h2>
+                <div class="display-timer">
+                    00 : 00 : 00
+                </div>
+                <div class="buttons">
+                    <button class="start-timer">Start</button>
+                    <button class="pause-timer">pause</button>
+                    <button class="restart-timer">restart</button>
+                    <button class="save-timer">save</button>
+                </div>
+            </div>
+            <!-- end timer -->
+
+        </div>
+    </div>
+
+    <!-- prompt -->
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="custom-prompt" id="customPrompt">
+        <p>Please enter your task:</p>
+        <input type="text" id="promptInput">
+        <br>
+        <button id="submitBtn" onclick="submitPrompt()">OK</button>
+        <button onclick="closePrompt()">Cancel</button>
+    </div>
+
+    <!-- end prompt -->
+</body>
+<script src="zApp.js"></script>
+
+</html>
