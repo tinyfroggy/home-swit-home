@@ -33,7 +33,7 @@ let startTime = 0;
 let elapsedTime = 0;
 let paused = true;
 let intervalId;
-let hrs = 0;
+let hrs = 0; // 
 let mins = 0;
 let secs = 0;
 
@@ -187,7 +187,7 @@ const taskDate = new Date();
 const taskYear = taskDate.getFullYear();
 const taskMonth = taskDate.getMonth();
 const taskDay = taskDate.getDate();
-const taskHour = taskDate.getHours();
+let taskHour = taskDate.getHours(); // it's was a const 
 const taskMinute = taskDate.getMinutes();
 let pmOrAm = taskHour >= 12 ? "pm" : "am";
 
