@@ -6,6 +6,10 @@ body {
     font-style: normal;
     margin: 0;
     padding: 0;
+    height: 800px;
+    background-image: url("https://i.pinimg.com/originals/bd/c6/54/bdc65440380bdc73ef47de752487c4d7.gif");
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .page {
@@ -21,9 +25,10 @@ body {
 .img-container {
     width: 100%;
     height: 100px;
-    position: fixed;
     top: 0;
     left: 0;
+    color: rgb(163, 147, 147);
+    text-transform: uppercase;
 }
 
 .grid-container {
@@ -32,7 +37,7 @@ body {
     grid-template-columns: 2fr 1fr 2fr;
     grid-gap: 5px;
     width: 100%;
-    margin-top: 130px;
+    margin-bottom: 50px;
 }
 
 .title,
@@ -76,7 +81,7 @@ body {
 /* calender style */
 
 .calender {
-    background-color: #070606;
+    background-color: rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -170,7 +175,7 @@ body {
 
 /* nots style */
 .nots {
-    background-color: #070606;
+    background-color: rgba(0, 0, 0, 0.1);
     font-size: 50px;
     cursor: pointer;
     border: 1px solid white;
@@ -492,6 +497,7 @@ body {
 .timer {
     flex-direction: column;
     border: 1px solid white;
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .timer .timer-title {
@@ -513,6 +519,7 @@ body {
     box-sizing: border-box;
     padding: 10px;
     cursor: pointer;
+    color: rgb(194, 180, 180);
 }
 
 .buttons{

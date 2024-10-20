@@ -149,6 +149,8 @@ function pad(uint) {
 */
 // tasks data
 
+const completedSound = new Audio("./voice/complet.wav");
+
 let tasks = [
     {
         "title": "read the book",
@@ -258,7 +260,13 @@ function deleteTask(index) {
  * @param {number} index The index of the task to mark as done.
  */
 function markDone(index) {
-    tasks[index].isDone = !tasks[index].isDone;
+    if (tasks[index].isDone === false) {
+        tasks[index].isDone = true
+        completedSound.play();
+    }else{
+        tasks[index].isDone = false
+    }
+    // tasks[index].isDone = !tasks[index].isDone;
 
     storTask()
     displayTasks();
