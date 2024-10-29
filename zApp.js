@@ -1,625 +1,342 @@
-// #region todo list logic
+// #region calender sittings
+/**
+ * This section handles the settings for the calendar.
+ */
+const month = document.getElementById('monthName');
+const day = document.getElementById("dayName");
+const number = document.getElementById("numberOfDay");
+const year = document.getElementById("year");
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-//! todo list container
+const date = new Date();
 
-let todoLists = [
-  {
-    title: 'todo list title',
-    time: "2020/10/10 | 5pm:44m",
-    isDon: false,
-    id: 0
-  }
+month.innerHTML = months[date.getMonth()];
+day.innerHTML = days[date.getDay()];
+number.innerHTML = date.getDate();
+year.innerHTML = date.getFullYear();
+
+// #endregion end calender sittings
+
+// #region timer sittings
+/**
+ * This section handles the settings for the timer.
+ */
+const display = document.querySelector(".display-timer");
+const start = document.querySelector(".start-timer");
+const pause = document.querySelector(".pause-timer");
+const reset = document.querySelector(".restart-timer");
+const save = document.querySelector(".save-timer");
+const hours_completed = document.getElementById("hrs");
+
+let startTime = 0;
+let elapsedTime = 0;
+let paused = true;
+let intervalId;
+let hrs = 0; // 
+let mins = 0;
+let secs = 0;
+
+const savedHours = localStorage.getItem("savedHours");
+
+if (savedHours) {
+    hours_completed.innerHTML = savedHours;
+}
+
+/**
+ * This function starts the timer.
+ */
+
+start.addEventListener("click", () => {
+    if (paused) {
+        paused = false;
+        startTime = Date.now() - elapsedTime;
+        intervalId = setInterval(updateTimer, 1000);
+    }
+});
+
+/**
+ * This function pauses the timer.
+ */
+pause.addEventListener("click", () => {
+    if (!paused) {
+        paused = true;
+        clearInterval(intervalId);
+    }
+});
+
+/**
+ * This function resets the timer.
+ */
+reset.addEventListener("click", () => {
+    paused = true;
+    clearInterval(intervalId);
+    display.textContent = "00 : 00 : 00";
+    hrs = 0;
+    mins = 0;
+    secs = 0;
+    elapsedTime = 0;
+    startTime = 0;
+});
+
+/**
+ * This function saves the hours completed.
+ */
+
+save.addEventListener("click", () => {
+    paused = true;
+    clearInterval(intervalId);
+
+    let today = new Date().toLocaleDateString(); // date today
+    let savedDate = localStorage.getItem("savedDate");  // date saved
+    let previousHours = parseInt(localStorage.getItem("savedHours")) || 0; // hours saved
+
+    // if today != the date saved 
+    if (today !== savedDate) {
+        previousHours = 0;
+    }
+
+    if (hrs > 0) {
+        let totalHours = previousHours + hrs;
+        localStorage.setItem("savedHours", totalHours);  // save the total hours
+        localStorage.setItem("savedDate", today);  // save the date to day
+        hours_completed.innerHTML = totalHours;
+        alert("Hours saved successfully!");
+    } else {
+        alert("You can only save if the hours are greater than 0.");
+    }
+
+    // restart the timer
+    display.textContent = "00 : 00 : 00";
+    hrs = 0;
+    mins = 0;
+    secs = 0;
+    elapsedTime = 0;
+    startTime = 0;
+});
+
+
+/**
+ * This function updates the timer display.
+ */
+function updateTimer() {
+    elapsedTime = Date.now() - startTime;
+    hrs = Math.floor(elapsedTime / (1000 * 60 * 60));
+    mins = Math.floor((elapsedTime / (1000 * 60)) % 60);
+    secs = Math.floor((elapsedTime / 1000) % 60);
+
+    secs = pad(secs);
+    mins = pad(mins);
+    hrs = pad(hrs);
+
+    display.innerHTML = `${hrs} : ${mins} : ${secs}`;
+}
+
+/**
+ * This function pads a number with a leading zero if it is less than 10.
+ * @param {number} uint The number to pad.
+ */
+
+function pad(uint) {
+    return ("0" + uint).length > 2 ? uint : "0" + uint;
+}
+
+// #endregion timer sittings
+
+// #region to-do list
+/**
+*  This section handles the settings for the to-do list.
+*/
+// tasks data
+
+const completedSound = new Audio("./voice/complet.wav");
+
+let tasks = [
+    {
+        "title": "read the book",
+        "date": "2020/10/11",
+        "isDone": false
+    },
+    {
+        "title": "read the",
+        "date": "2025/10/11",
+        "isDone": false
+    },
+    {
+        "title": "read",
+        "date": "2030/10/11",
+        "isDone": false
+    }
 ];
 
-//! end todo list container 
-
-//? date logic 
-
-let date = new Date();
-let year = date.getFullYear();
-let month = date.getMonth();
-let day = date.getDate();
-let hour = date.getHours();
-let minute = date.getMinutes();
-
-let currentTime = ` ${year}/${month + 1}/${day} | ${hour === 0 ? 12 : hour > 12 ? hour - 12 : hour}:${minute < 10 ? '0' + minute : minute} ${hour >= 12 ? 'PM' : 'AM'}`;
-
-//? end date logic 
-
-// sound when task is completed
-const completedTaskSound = new Audio('./voices/completeTask.wav');
-
-const addTask = document.getElementById('add-task');
-const taskTitle = document.querySelector('.prompt-task-title');
-const submitTask = document.querySelector('.prompt-task-add');
-const closeTask = document.querySelector('.prompt-task-close');
-const editTaskBtn = document.getElementById('editBtn-task');
-const submitEditTaskBtn = document.getElementById('editBtn-task');
-
-const tasksContainer = document.querySelector('.task');
-
-const promptTask = document.querySelector('.prompt-task');
-
-// get tasks from local storage
 function getTasksFromLocalStorage() {
-  todoLists = JSON.parse(localStorage.getItem('todoLists')) || [];
+    let retrievedTasks = JSON.parse(localStorage.getItem("to-do-task"));
+    if (retrievedTasks === null) {
+        tasks = []
+    } else {
+        tasks = retrievedTasks
+    }
 }
 
-// call get tasks from local storage
-getTasksFromLocalStorage();
+getTasksFromLocalStorage()
 
-// store tasks in local storage
-function storTaskForLocalStorage() {
-  localStorage.setItem('todoLists', JSON.stringify(todoLists));
+const taskContainer = document.querySelector('.task');
+const addBtn = document.querySelector(".add-task");
+let editIndex = null;
+
+// dates
+const taskDate = new Date();
+const taskYear = taskDate.getFullYear();
+const taskMonth = taskDate.getMonth();
+const taskDay = taskDate.getDate();
+let taskHour = taskDate.getHours(); // it's was a const 
+const taskMinute = taskDate.getMinutes();
+let pmOrAm = taskHour >= 12 ? "pm" : "am";
+
+if (taskHour > 12) {
+    taskHour -= 12;
+    pmOrAm = "pm";
+} else if (taskHour === 0) {
+    taskHour = 12;
+    pmOrAm = "am";
 }
+let dateStr = taskDay + "/" + taskMonth + "/" + taskYear + " " + taskHour + pmOrAm + " : " + taskMinute + "m";
 
-// show the tasks
+
+// show all tasks
+/**
+* This function displays all the tasks in the to-do list.
+*/
 function displayTasks() {
-  tasksContainer.innerHTML = '';
+    taskContainer.innerHTML = ``;
 
-  // for sorting the completed tasks first and then not completed
-  const sortedTasks = todoLists.sort((a, b) => a.isDon - b.isDon);
-
-  for (const task of sortedTasks) {
-
-    let taskBody =
-      `
-  <!-- task body -->
-    <div class="task-body ${task.isDon ? 'done' : ''}">
-      <div class="task-header-text">
-        <h2 class="title-task">${task.title}</h2>
-        <hr>
-        <p><span class="date-task" id="date-task">${task.time}</span></p>
-    </div>
-
-        <div class="task-buttons-wrapper">
-          <button onclick="deleteTask(${task.id})" class="delete-task circle" title="delete task"><i class="fa-solid fa-trash"></i></button>
-          <button onclick="doneTask(${task.id})" class="done-task circle" title="${task.isDon ? 'undo' : 'done'} task"><i class="fa-solid fa-${task.isDon ? 'close' : 'check'}"></i></button>
-          <button onclick="editTask(${task.id})" class="edit-task circle" title="edit task"><i class="fa-solid fa-pen-to-square"></i></button>
-        </div>
-
-    </div>
-  <!-- end task body -->
-  `;
-
-    tasksContainer.innerHTML += taskBody;
-  }
+    tasks.forEach((task, index) => {
+        const taskElement = `
+            <div class="task-body">
+                <h2 class="title-task ${task.isDone ? "done" : ""}">${task.title}<span class="date-task">${task.date}</span></h2>
+                <button class="delete-task circle" onclick="deleteTask(${index})"><i class="fa-solid fa-trash"></i></button>
+                ${task.isDone ? `<button class="done-task circle" onclick="markDone(${index})"><i class="fa-solid fa-close"></i></button>` : `<button class="done-task circle " onclick="markDone(${index})"><i class="fa-solid fa-check"></i></button>`}
+                <button class="edit-task circle" onclick="editTask(${index})"><i class="fa-solid fa-pen-to-square"></i></button>
+            </div>
+        `;
+        taskContainer.innerHTML += taskElement;
+    });
 }
-
-displayTasks();
-storTaskForLocalStorage();
 
 // add new task
-addTask.addEventListener('click', () => {
-  promptTask.classList.remove('hidden');
-  taskTitle.focus();
-  taskTitle.value = '';
+/**
+* This function adds a new task to the to-do list.
+*/
+addBtn.addEventListener("click", () => {
+    showCustomPrompt("add");
 });
 
-// submit new task
-submitTask.addEventListener('click', () => {
-  addNewTask();
-});
+// edit existing task
+/**
+ * This function edits an existing task in the to-do list.
+ * @param {number} index The index of the task to edit.
+ */
+function editTask(index) {
+    document.q
+    editIndex = index;
+    showCustomPrompt("edit", tasks[index].title);
+}
 
-// submit and close new task
-taskTitle.addEventListener('keydown', function (event) {
-  if (event.key === 'Enter' && submitTask.classList.contains('hidden') === false) {
-    addNewTask();
-  }
-});
+// delete task
+/**
+ * This function deletes a task from the to-do list.
+ * @param {number} index The index of the task to delete.
+ */
+function deleteTask(index) {
+    tasks.splice(index, 1);
 
+    storTask()
+    displayTasks();
+}
 
-// add new task logic
-function addNewTask() {
+// mark task as done
+/**
+ * This function marks a task as done in the to-do list.
+ * @param {number} index The index of the task to mark as done.
+ */
+function markDone(index) {
+    if (tasks[index].isDone === false) {
+        tasks[index].isDone = true
+        completedSound.play();
+    }else{
+        tasks[index].isDone = false
+    }
+    // tasks[index].isDone = !tasks[index].isDone;
 
-  // you cant add empty task
-  if (taskTitle.value === '') {
-    alert('Please enter task title');
-    return;
-  }
+    storTask()
+    displayTasks();
+}
 
-  // add new task on todo lists container
-  // unshift means add new task on top
-  todoLists.unshift({
-    title: taskTitle.value,
-    time: currentTime,
-    isDon: false,
-    id: Date.now()
-  });
+// show custom prompt for adding/editing
+/**
+ * This function shows a custom prompt for adding or editing a task in the to-do list.
+ * @param {string} type The type of the prompt, either "add" or "edit".
+ * @param {string} value The initial value of the prompt, if editing.
+ */
+function showCustomPrompt(type, value = "") {
+    const input = document.getElementById('promptInput');
+    input.value = value;  // fill input if editing
+    document.getElementById('customPrompt').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+    input.focus()
 
-  displayTasks();
-  storTaskForLocalStorage();
+    input.onkeydown = function (event) {
+        if (event.key === 'Enter') {
+            submitPrompt(type);
+        }
+    };
 
-  // close prompt
-  promptTask.classList.add('hidden');
-};
+    document.getElementById('submitBtn').onclick = function () {
+        submitPrompt(type);
+    };
+}
+
+// submit prompt value
+/**
+ * This function submits the value of the custom prompt for adding or editing a task in the to-do list.
+ * @param {string} type The type of the prompt, either "add" or "edit".
+ */
+function submitPrompt(type) {
+    const input = document.getElementById('promptInput').value.trim();
+
+    if (input === '') {
+        alert("Please enter a task");
+        return;
+    }
+
+    if (type === "add") {
+        tasks.push({ title: input, date: dateStr, isDone: false });
+    } else if (type === "edit") {
+        tasks[editIndex].title = input;
+    }
+
+    storTask();
+    displayTasks();
+    closePrompt();
+}
 
 // close prompt
-closeTask.addEventListener('click', () => {
-  promptTask.classList.add('hidden');
-  submitTask.classList.remove('hidden');
-  submitEditTaskBtn.classList.add('hidden');
-});
-
-// edit task logic
-function editTask(id) {
-  // find task form todo lists container
-  const task = todoLists.find(task => task.id === id);
-
-  // show prompt 
-  promptTask.classList.remove('hidden');
-  submitTask.classList.add('hidden');
-  submitEditTaskBtn.classList.remove('hidden');
-  taskTitle.focus();
-  taskTitle.value = task.title;
-
-  // submit and edit task
-  editTaskBtn.onclick = () => {
-    saveTaskEdit(task);
-  };
-
-  // close prompt after submit
-  taskTitle.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter' && submitEditTaskBtn.classList.contains('hidden') === false) {
-      saveTaskEdit(task);
-    }
-  });
+/**
+ * This function closes the custom prompt for adding or editing a task in the to-do list.
+ */
+function closePrompt() {
+    document.getElementById('customPrompt').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('promptInput').value = '';
 }
 
-// save task edit logic
-function saveTaskEdit(task) {
-  task.title = taskTitle.value;
-  task.time = currentTime + ' - ' + 'Eeddited';
-
-
-  displayTasks();
-  storTaskForLocalStorage();
-
-  submitEditTaskBtn.classList.add('hidden');
-  promptTask.classList.add('hidden');
-  submitTask.classList.remove('hidden');
+function storTask() {
+    let tasksJason = JSON.stringify(tasks);
+    localStorage.setItem("to-do-task", tasksJason);
 }
 
-// if is done task logic
-function doneTask(id) {
-  // find the task
-  const task = todoLists.find(task => task.id === id);
-
-  // fi true play the sound
-  if (task.isDon === false) {
-    task.isDon = true;
-    completedTaskSound.play();
-  } else {
-    task.isDon = false;
-  }
-
-  displayTasks();
-  storTaskForLocalStorage();
-}
-
-// delete task logic
-function deleteTask(id) {
-  // fill all tasks except the deleted one
-  todoLists = todoLists.filter(task => task.id !== id);
-
-  displayTasks();
-  storTaskForLocalStorage();
-}
-
-// #endregion end todo list logic
-
-// #region timer logic
-
-const start = document.getElementById('start');
-const stop = document.getElementById('stop');
-const reset = document.getElementById('reset');
-const timer = document.getElementById('timer');
-const plusMinute = document.getElementById('plus-minute');
-const minusMinute = document.getElementById('minus-minute');
-let sound = new Audio('./voices/levlUp.wav');
-
-let timeLeft = 1500;
-let interval;
-let isRunning = false;
-
-const updateTimer = () => {
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-
-  timer.innerHTML = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-}
-
-const startTimer = () => {
-  interval = setInterval(() => {
-    timeLeft--;
-    updateTimer();
-
-    if (timeLeft === 0) {
-      clearInterval(interval);
-      sound.play();
-      timeLeft = 1500;
-      updateTimer();
-    }
-
-  }, 1000);
-}
-
-const stopTimer = () => {
-  clearInterval(interval);
-
-}
-
-const resetTimer = () => {
-  clearInterval(interval);
-  timeLeft = 1500;
-  updateTimer();
-
-}
-
-start.addEventListener('click', function () {
-  if (!isRunning) {
-    isRunning = true;
-    this.disabled = true;
-    stop.disabled = false;
-    reset.disabled = false;
-    startTimer();
-  }
-});
-
-stop.addEventListener('click', function () {
-  if (isRunning) {
-    isRunning = false;
-    stopTimer();
-    start.disabled = false;
-    this.disabled = true;
-  }
-});
-
-reset.addEventListener('click', function () {
-  this.disabled = true;
-  resetTimer();
-  isRunning = false;
-  stop.disabled = true;
-  start.disabled = false;
-});
-
-
-plusMinute.addEventListener('click', () => {
-  timeLeft += 300;
-  updateTimer();
-});
-
-minusMinute.addEventListener('click', () => {
-  if (timeLeft <= 300) {
-    alert('Cannot be less than 5 minutes');
-    return;
-  }
-  timeLeft -= 300;
-  updateTimer();
-});
-
-// #endregion  end timer logic
-
-
-// #region flash card logic
-
-// flash card container
-let flashCards = [
-  {
-    title: 'flash card title',
-    answer: 'flash card answer',
-    showAnswer: false,
-    id: 2
-  }
-];
-
-// get flash cards from local storage
-function getFromLocalStorage() {
-  const flashCardsFromStorage = localStorage.getItem('flashCards');
-  if (flashCardsFromStorage) {
-    flashCards = JSON.parse(flashCardsFromStorage);
-    if (flashCards.length > 0) {
-      indexFlashCard = Math.max(...flashCards.map(card => card.id)) + 1;
-    }
-  } else {
-    flashCards = [];
-  }
-}
-
-const flashCardContainer = document.querySelector('.flash-cards-container');
-
-const addFlashCard = document.querySelector('.flash-card-add');
-const closeFlashCard = document.querySelector('.prompt-flash-card-close');
-const submitFlashCard = document.querySelector('.prompt-flash-card-add');
-const editFlashCardBtn = document.querySelector('.prompt-flash-card-edit');
-
-const flashCardTitle = document.querySelector('.prompt-flash-card-title');
-const flashCardAnswer = document.querySelector('.prompt-flash-card-answer');
-
-let indexFlashCard = 1;
-
-getFromLocalStorage();
-displayFlashCards();
-
-// show flash cards logic
-function displayFlashCards() {
-  flashCardContainer.innerHTML = '';
-
-  for (const card of flashCards) {
-    let flashCard = `
-    <!-- flash card body -->
-        <div class="flash-card-body">
-          <div class="flash-card-title">
-            <h1>${card.title}</h1>
-            <div class="buttons-flash-card">
-            <button onclick="funShowAnswer(${card.id})" class="circle" title="${card.showAnswer ? 'hide answer' : 'show answer'}"><i class="fa-solid fa-${card.showAnswer ? 'eye-slash' : 'eye'}"></i></button>
-            <button onclick="editFlashCard(${card.id})" class="circle" id="flash-card-edit" title="edit flash card"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button onclick="deleteFlashCard(${card.id})" class="circle" title="delete flash card"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-          <hr class="flash-card-hr">
-          <p class="flash-card-answer ${card.showAnswer ? 'show-answer' : 'hidden'}">${card.answer}</p>
-        </div>
-    <!-- end flash card body -->
-    `;
-
-    flashCardContainer.innerHTML += flashCard;
-  }
-}
-
-// show answer logic
-function funShowAnswer(id) {
-  const card = flashCards.find(card => card.id === id);
-  card.showAnswer = !card.showAnswer;
-
-  displayFlashCards();
-  storForLocalStorage();
-}
-
-// edit flash card logic
-function editFlashCard(id) {
-  const index = flashCards.findIndex(card => card.id === id);
-  flashCardTitle.value = flashCards[index].title;
-  flashCardAnswer.value = flashCards[index].answer;
-
-  document.querySelector('.prompt-flash-card-add').classList.add('hidden');
-  editFlashCardBtn.classList.remove('hidden');
-  document.querySelector('.prompt-flash-card').classList.remove('hidden');
-  flashCardTitle.focus();
-
-  editFlashCardBtn.onclick = () => {
-    saveFlashCardEdit(index);
-  };
-}
-
-function saveFlashCardEdit(index) {
-  if (flashCardTitle.value === '' || flashCardAnswer.value === '') {
-    alert('Please enter both title and answer');
-    return;
-  }
-
-  flashCards[index].title = flashCardTitle.value;
-  flashCards[index].answer = flashCardAnswer.value;
-  flashCards[index].showAnswer = false;
-
-  displayFlashCards();
-  storForLocalStorage();
-
-  editFlashCardBtn.classList.add('hidden');
-  document.querySelector('.prompt-flash-card').classList.add('hidden');
-}
-
-
-
-
-function deleteFlashCard(id) {
-  flashCards = flashCards.filter(card => card.id !== id);
-  displayFlashCards();
-  storForLocalStorage();
-}
-
-addFlashCard.addEventListener('click', () => {
-  document.querySelector('.prompt-flash-card').classList.remove('hidden');
-  document.querySelector('.prompt-flash-card-add').classList.remove('hidden');
-  editFlashCardBtn.classList.add('hidden');
-  flashCardTitle.value = '';
-  flashCardAnswer.value = '';
-  flashCardTitle.focus();
-});
-
-closeFlashCard.addEventListener('click', () => {
-  document.querySelector('.prompt-flash-card').classList.add('hidden');
-});
-
-submitFlashCard.addEventListener('click', () => {
-  addNewFlashCard();
-});
-
-flashCardTitle.addEventListener('keydown', function (event) {
-  if (event.key === 'Enter' && submitFlashCard.classList.contains('hidden') === false) {
-    addNewFlashCard();
-  }
-
-  if (event.key === 'ArrowDown') {
-    flashCardAnswer.focus();
-  }
-});
-
-flashCardAnswer.addEventListener('keydown', function (event) {
-  if (event.key === 'Enter' && submitFlashCard.classList.contains('hidden') === false) {
-    addNewFlashCard();
-  }
-
-  if (event.key === 'ArrowUp') {
-    flashCardTitle.focus();
-  }
-});
-
-// fix the enter key
-
-function addNewFlashCard() {
-  if (flashCardTitle.value === '' || flashCardAnswer.value === '') {
-    alert('Please enter both title and answer');
-    return;
-  }
-
-  flashCards.push({
-    title: flashCardTitle.value,
-    answer: flashCardAnswer.value,
-    showAnswer: false,
-    id: indexFlashCard
-  });
-
-  indexFlashCard++;
-  storForLocalStorage();
-
-  flashCardTitle.value = '';
-  flashCardAnswer.value = '';
-
-  document.querySelector('.prompt-flash-card').classList.add('hidden');
-
-  displayFlashCards();
-}
-
-function storForLocalStorage() {
-  localStorage.setItem('flashCards', JSON.stringify(flashCards));
-}
-
-// #endregion end flash card logic
-
-// #region  nots logic
-
-let nots = [
-  {
-    text: "1",
-    id: 1
-  }, {
-    text: "2",
-    id: 2
-  }
-];
-
-function getNotsFromLocalStorage() {
-  nots = JSON.parse(localStorage.getItem('nots')) || [];
-};
-
-getNotsFromLocalStorage();
-
-function storNotsToLocalStorage() {
-  localStorage.setItem('nots', JSON.stringify(nots));
-}
-
-function generateUniqueId() {
-  const timestamp = Date.now();
-  return timestamp
-}
-
-const notsContainer = document.querySelector('.container-nots');
-const createNoteButton = document.querySelector('.create-note');
-
-const promptNote = document.querySelector('.prompt-note');
-const textPrompt = document.querySelector('.text-prompt');
-const cancelPromptBtn = document.querySelector('.cancel-prompt');
-const submitPromptBtn = document.querySelector('.submit-prompt');
-const submitEditBtn = document.getElementById('edit-submit');
-
-function autoResize(element) {
-  element.style.height = 'auto';
-  element.style.height = `${Math.min(element.scrollHeight, 200)}px`;
-}
-
-function applyAutoResizeForNotes() {
-  const noteBoards = document.querySelectorAll('.note-board');
-  noteBoards.forEach(noteBoard => {
-      autoResize(noteBoard);
-  });
-}
-
-function renderNots() {
-  notsContainer.innerHTML = '';
-
-  for (const note of nots) {
-
-    const noteElement =
-      `
-    <!-- note -->
-      <div class="note">
-        <!-- note buttons -->
-        <div class="note-buttons">
-          <button onclick="deleteNote(${note.id})" class="delete-note" title="delete note"><i class="fa-solid fa-trash-can"></i></button>
-          <button onclick="editNote(${note.id})" class="edit-note" title="edit note"><i class="fa-solid fa-pen"></i></button>
-        </div>
-        <!-- end note buttons -->
-        <textarea class="note-board" readonly>${note.text}</textarea>
-      </div>
-    <!-- end note -->
-    `
-
-    notsContainer.innerHTML += noteElement;
-
-  }
-
-  applyAutoResizeForNotes();
-}
-
-renderNots();
-storNotsToLocalStorage();
-
-createNoteButton.addEventListener('click', () => {
-  promptNote.classList.toggle('hidden');
-  textPrompt.value = '';
-  textPrompt.focus();
-
-  submitPromptBtn.classList.remove('hidden');
-  submitEditBtn.classList.add('hidden');
-});
-
-cancelPromptBtn.addEventListener('click', () => {
-  promptNote.classList.toggle('hidden');
-});
-
-submitPromptBtn.addEventListener('click', () => {
-  const text = textPrompt.value;
-  nots.push({
-    text,
-    id: generateUniqueId()
-  });
-  renderNots();
-  storNotsToLocalStorage();
-  promptNote.classList.toggle('hidden');
-});
-
-function editNote(id) {
-  const noteToEdit = nots.find(note => note.id === id);
-
-  submitPromptBtn.classList.add('hidden');
-  submitEditBtn.classList.remove('hidden');
-  promptNote.classList.toggle('hidden');
-
-  textPrompt.focus();
-
-  textPrompt.value = noteToEdit.text;
-
-  submitEditBtn.onclick = () => {
-    const text = textPrompt.value;
-    noteToEdit.text = text;
-    renderNots();
-    storNotsToLocalStorage();
-    promptNote.classList.add('hidden');
-  }
-}
-
-textPrompt.addEventListener('input', () => {
-  autoResize(textPrompt);
-});
-
-function deleteNote(id) {
-  nots = nots.filter(note => note.id !== id);
-  renderNots();
-  storNotsToLocalStorage();
-}
-
-
-// #endregion  end nots logic
-
-
+// initial display of tasks
+storTask()
+displayTasks();
+
+// #endregion to-do list
